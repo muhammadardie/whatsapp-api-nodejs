@@ -1,6 +1,20 @@
 const { WhatsAppInstance } = require('../class/instance')
 const fs = require('fs')
 const path = require('path')
+const sleep = require('../helper/sleep')
+
+async function getQrCode(key) {
+    const qrcode = await WhatsAppInstances[key].instance.qr
+
+    // wait for 1 second until qr generated if not yet then repeat
+    if(qrcode === '') {
+        await sleep(1000) 
+
+        return getQrCode(key)
+    }
+
+    return qrcode;
+}
 
 exports.init = async (req, res) => {
     const key = req.query.key
@@ -17,7 +31,7 @@ exports.init = async (req, res) => {
 
 exports.qr = async (req, res) => {
     try {
-        const qrcode = await WhatsAppInstances[req.query.key].instance.qr
+        const qrcode = await getQrCode(req.query.key)
         res.render('qrcode', {
             qrcode: qrcode,
         })
@@ -28,15 +42,35 @@ exports.qr = async (req, res) => {
     }
 }
 
+exports.qrImg = async (req, res) => {
+    try {
+        const qrcode = await getQrCode(req.query.key)
+        const base64Data = qrcode.replace(/^data:image\/png;base64,/, '');
+        const img = Buffer.from(base64Data, 'base64');
+
+        res.writeHead(200, {
+          'Content-Type': 'image/png',
+          'Content-Length': img.length
+        });
+        res.end(img);
+    } catch {
+        res.json({
+            qrcode: '',
+        })
+    }
+}
+
 exports.qrbase64 = async (req, res) => {
     try {
-        const qrcode = await WhatsAppInstances[req.query.key].instance.qr
+        const qrcode = await getQrCode(req.query.key)
+        
         res.json({
             error: false,
             message: 'QR Base64 fetched successfully',
             qrcode: qrcode,
         })
-    } catch {
+    } catch(err) {
+        console.log(err)
         res.json({
             qrcode: '',
         })

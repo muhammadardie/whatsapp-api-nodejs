@@ -20,7 +20,7 @@ class WhatsAppInstance {
         printQRInTerminal: false,
         browser: ['Whatsapp MD', '', '3.0'],
         logger: pino({
-            level: 'silent',
+            level: 'info',
         }),
     }
     key = ''
@@ -213,7 +213,7 @@ class WhatsAppInstance {
         return data
     }
 
-    async sendMediaFile(to, file, type, caption = '', filename) {
+    async sendMediaFile(to, file, type, caption = '') {
         await this.verifyId(this.getWhatsAppId(to))
         const data = await this.instance.sock?.sendMessage(
             this.getWhatsAppId(to),
@@ -222,7 +222,6 @@ class WhatsAppInstance {
                 [type]: file.buffer,
                 caption: caption,
                 ptt: type === 'audio' ? true : false,
-                fileName: filename ? filename : file.originalname,
             }
         )
         return data
@@ -251,23 +250,6 @@ class WhatsAppInstance {
             'image'
         )
         return ppUrl
-    }
-
-    async getUserStatus(of) {
-        await this.verifyId(this.getWhatsAppId(of))
-        const status = await this.instance.sock?.fetchStatus(
-            this.getWhatsAppId(of)
-        )
-        return status
-    }
-
-    async blockUnblock(to, data) {
-        await this.verifyId(this.getWhatsAppId(to))
-        const status = await this.instance.sock?.updateBlockStatus(
-            this.getWhatsAppId(to),
-            data
-        )
-        return status
     }
 
     async sendButtonMessage(to, data) {

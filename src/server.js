@@ -1,16 +1,30 @@
-const app = require('./config/express')
-// const mongoose = require('mongoose')
-const config = require('./config/config')
+const app    = require('./config/express')
+const { express: {port} } = require('./config/config')
+const http   = require('http');
+const path   = require('path');
+const fs     = require('fs')
 const logger = require('pino')()
 let server
 
-// mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
-//     logger.info('Connected to MongoDB')
-// })
+server = http.createServer(app);
 
-server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`)
+if(process.env.HTTPS === 'true')
+{
+    const https = require('https');
+    const key   = fs.readFileSync(path.resolve(__dirname, process.env.HTTPS_KEY_PATH));
+    const cert  = fs.readFileSync(path.resolve(__dirname, process.env.HTTPS_CERT_PATH));
+    const options = {
+      key: key,
+      cert: cert
+    };
+
+    server = https.createServer(options, app);
+}
+
+server.listen(port, () => {
+    logger.info(`Listening to port ${port}`)
 })
+
 const exitHandler = () => {
     if (server) {
         server.close(() => {
