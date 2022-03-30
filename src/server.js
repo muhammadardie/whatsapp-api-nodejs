@@ -4,10 +4,12 @@ const http   = require('http');
 const path   = require('path');
 const fs     = require('fs')
 const logger = require('pino')()
+const { restoreSessions } = require('./api/helper/session')
 let server
 
 server = http.createServer(app);
 
+// check if https set in env
 if(process.env.HTTPS === 'true')
 {
     const https = require('https');
@@ -21,9 +23,12 @@ if(process.env.HTTPS === 'true')
     server = https.createServer(options, app);
 }
 
+// start server
 server.listen(port, () => {
     logger.info(`Listening to port ${port}`)
 })
+
+restoreSessions()
 
 const exitHandler = () => {
     if (server) {

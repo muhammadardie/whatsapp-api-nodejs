@@ -14,11 +14,12 @@ const generateVC = require('../helper/genVc')
 // const Chat = require("../models/chat.model")
 const axios = require('axios')
 const config = require('../../config/config')
+const { Message } = require('./message')
 
 class WhatsAppInstance {
     socketConfig = {
         printQRInTerminal: false,
-        browser: ['Whatsapp MD', '', '3.0'],
+        // browser: ['Whatsapp MD', '', '3.0'],
         logger: pino({
             level: 'info',
         }),
@@ -116,7 +117,6 @@ class WhatsAppInstance {
 
         // on recive new chat
         sock?.ev.on('chats.upsert', (newChat) => {
-            // console.log("Received new chat")
             const chats = newChat.map((chat) => {
                 return {
                     ...chat,
@@ -171,6 +171,8 @@ class WhatsAppInstance {
                 )
                     return
 
+                const messageHelper = new Message(msg)
+                const formattedMessage = messageHelper.extract(msg)
                 const webhookData = {
                     key: this.key,
                     ...msg,

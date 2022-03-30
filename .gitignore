@@ -5,3 +5,4 @@ sessiondata
 package-lock.json
 
 yarn.lock
+.env
